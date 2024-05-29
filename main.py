@@ -107,7 +107,7 @@ def main(args):
     if not args.test:
         preds = method_obj.predict(xval)
         acc = accuracy_fn(preds, yval)
-        macrof1 = macrof1_fn(preds, xtest)
+        macrof1 = macrof1_fn(preds, yval)
         print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
     ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
