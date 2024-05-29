@@ -1,5 +1,6 @@
 import numpy as np
 
+
 ## MS2
 
 class PCA(object):
@@ -19,9 +20,9 @@ class PCA(object):
             d (int): dimensionality of the reduced space
         """
         self.d = d
-        
+
         # the mean of the training data (will be computed from the training data and saved to this variable)
-        self.mean = None 
+        self.mean = None
         # the principal components (will be computed from the training data and saved to this variable)
         self.W = None
 
@@ -38,11 +39,29 @@ class PCA(object):
         Returns:
             exvar (float): explained variance of the kept dimensions (in percentage, i.e., in [0,100])
         """
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
+        # Compute the mean of data
+        self.mean = np.mean(training_data, axis=0)
+        # Center the data with the mean
+        training_data_tilde = training_data - self.mean
+        # Create the covariance matrix
+        C = np.cov(training_data_tilde, rowvar=False)
+        # Compute the eigenvectors and eigenvalues
+        eigvals, eigvecs = np.linalg.eigh(C)
+        total_variance = np.sum(eigvals)
+        # Sort the eigenvalues and corresponding eigenvectors in decreasing order
+        sorted_indices = np.argsort(eigvals)[::-1]
+        eigvals = eigvals[sorted_indices]
+        eigvecs = eigvecs[:, sorted_indices]
+        # Select the top d eigenvalues and corresponding eigenvectors
+        eigvals = eigvals[:self.d]
+        eigvecs = eigvecs[:, :self.d]
+
+        self.W = eigvecs
+
+        # Compute the explained variance
+        d_eigvals = np.sum(eigvals)
+        exvar = d_eigvals / total_variance * 100
+
         return exvar
 
     def reduce_dimension(self, data):
@@ -54,11 +73,5 @@ class PCA(object):
         Returns:
             data_reduced (array): reduced data of shape (N,d)
         """
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
+        data_reduced = np.dot(data, self.W)
         return data_reduced
-        
-

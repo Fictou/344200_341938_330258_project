@@ -8,6 +8,8 @@ from src.methods.pca import PCA
 from src.methods.deep_network import MLP, CNN, Trainer, MyViT
 from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, get_n_classes
 
+validation_size = 0.2
+
 
 def main(args):
     """
@@ -28,18 +30,34 @@ def main(args):
 
     # Make a validation set
     if not args.test:
-    ### WRITE YOUR CODE HERE
-        print("Using PCA")
+        num_val_samples = int(validation_size * xtrain.shape[0])
+        xval = xtrain[:num_val_samples]
+        yval = ytrain[:num_val_samples]
+        xtrain = xtrain[num_val_samples:]
+        ytrain = ytrain[num_val_samples:]
 
-    ### WRITE YOUR CODE HERE to do any other data processing
+    # Normalize the data
+    mean = np.mean(xtrain, axis=0)
+    std = np.std(xtrain, axis=0)
+    xtrain = normalize_fn(xtrain, mean, std)
+    xtest = normalize_fn(xtest, mean, std)
+    if not args.test:
+        xval = normalize_fn(xval, mean, std)
 
+    # Add bias term
+    #xtrain = append_bias_term(xtrain)
+    #xtest = append_bias_term(xtest)
+    #if not args.test:
+    #   xval = append_bias_term(xval)
 
     # Dimensionality reduction (MS2)
     if args.use_pca:
         print("Using PCA")
         pca_obj = PCA(d=args.pca_d)
-        ### WRITE YOUR CODE HERE: use the PCA object to reduce the dimensionality of the data
-
+        xtrain = pca_obj.find_principal_components(xtrain)
+        xtest = pca_obj.reduce_dimension(xtest)
+        if not args.test:
+            xval = pca_obj.reduce_dimension(xval)
 
     ## 3. Initialize the method you want to use.
 
@@ -49,13 +67,26 @@ def main(args):
     # Note: you might need to reshape the data depending on the network you use!
     n_classes = get_n_classes(ytrain)
     if args.nn_type == "mlp":
-        model = ... ### WRITE YOUR CODE HERE
+        input_dim = xtrain.shape[1]
+        model = MLP(input_dim, n_classes)
+    elif args.nn_type == "cnn":
+        model = CNN(1, n_classes)
+        # Reshape data for CNN (if required, assuming images are square)
+        xtrain = xtrain.reshape(-1, 1, 28, 28)  # Example for 28x28 grayscale images
+        xtest = xtest.reshape(-1, 1, 28, 28)
+        if not args.test:
+            xval = xval.reshape(-1, 1, 28, 28)
+    elif args.nn_type == "transformer":
+        model = MyViT(n_classes, 28, 7, n_classes, 64, 6)
+        # Additional processing for ViT if needed
+    else:
+        print(f"Model type {args.nn_type} not implemented")
+        return
 
     summary(model)
 
     # Trainer object
     method_obj = Trainer(model, lr=args.lr, epochs=args.max_iters, batch_size=args.nn_batch_size)
-
 
     ## 4. Train and evaluate the method
 
@@ -70,13 +101,14 @@ def main(args):
     macrof1 = macrof1_fn(preds_train, ytrain)
     print(f"\nTrain set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
-
     ## As there are no test dataset labels, check your model accuracy on validation dataset.
-    # You can check your model performance on test set by submitting your test set predictions on the AIcrowd competition.
-    acc = accuracy_fn(preds, xtest)
-    macrof1 = macrof1_fn(preds, xtest)
-    print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
-
+    # You can check your model performance on test set by submitting your test set predictions on the AIcrowd
+    # competition.
+    if not args.test:
+        preds = method_obj.predict(xval)
+        acc = accuracy_fn(preds, yval)
+        macrof1 = macrof1_fn(preds, xtest)
+        print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
 
     ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
 
@@ -97,12 +129,12 @@ if __name__ == '__main__':
     parser.add_argument('--use_pca', action="store_true", help="use PCA for feature reduction")
     parser.add_argument('--pca_d', type=int, default=100, help="the number of principal components")
 
-
-    parser.add_argument('--lr', type=float, default=1e-5, help="learning rate for methods with learning rate")
+    parser.add_argument('--lr', type=float, default=1e-5, help="learning rate for methods with learning "
+                                                               "rate")
     parser.add_argument('--max_iters', type=int, default=100, help="max iters for methods which are iterative")
     parser.add_argument('--test', action="store_true",
-                        help="train on whole training data and evaluate on the test data, otherwise use a validation set")
-
+                        help="train on whole training data and evaluate on the test data, otherwise use a validation "
+                             "set")
 
     # "args" will keep in memory the arguments and their values,
     # which can be accessed as "args.data", for example.
