@@ -25,6 +25,9 @@ def main(args):
     xtrain = xtrain.reshape(xtrain.shape[0], -1)
     xtest = xtest.reshape(xtest.shape[0], -1)
 
+    #xtrain = xtrain.reshape((xtrain.shape[0], 1, int(np.sqrt(xtrain.shape[1])), int(np.sqrt(xtrain.shape[1]))))
+    #xtest = xtest.reshape((xtest.shape[0], 1, int(np.sqrt(xtest.shape[1])), int(np.sqrt(xtest.shape[1]))))
+
     ## 2. Then we must prepare it. This is were you can create a validation set,
     #  normalize, add bias, etc.
 
@@ -92,7 +95,7 @@ def main(args):
         print(f"Model type {args.nn_type} not implemented")
         return
 
-    summary(model)
+    #summary(model) TODO Uncomment
 
     # Trainer object
     method_obj = Trainer(model, lr=args.lr, epochs=args.max_iters, batch_size=args.nn_batch_size)
@@ -118,6 +121,7 @@ def main(args):
         acc = accuracy_fn(preds, yval)
         macrof1 = macrof1_fn(preds, yval)
         print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
+        return acc
 
     ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
 
