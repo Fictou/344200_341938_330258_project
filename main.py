@@ -21,7 +21,7 @@ def main(args):
                           of this file). Their value can be accessed as "args.argument".
     """
     ## 1. First, we load our data and flatten the images into vectors
-    xtrain, xtest, ytrain = load_data(args.data_path)
+    xtrain, xtest, ytrain = load_data(args.data)
     xtrain = xtrain.reshape(xtrain.shape[0], -1)
     xtest = xtest.reshape(xtest.shape[0], -1)
 
@@ -54,10 +54,13 @@ def main(args):
     if args.use_pca:
         print("Using PCA")
         pca_obj = PCA(d=args.pca_d)
-        xtrain = pca_obj.find_principal_components(xtrain)
-        xtest = pca_obj.reduce_dimension(xtest)
+        explained_variance = pca_obj.find_principal_components(xtrain)
+        print(f"Explained Variance by PCA: {explained_variance}%")
+        xtrain = pca_obj.transform(xtrain)
+        xtest = pca_obj.transform(xtest)
         if not args.test:
-            xval = pca_obj.reduce_dimension(xval)
+            xval = pca_obj.transform(xval)
+
 
     ## 3. Initialize the method you want to use.
 
@@ -77,7 +80,13 @@ def main(args):
         if not args.test:
             xval = xval.reshape(-1, 1, 28, 28)
     elif args.nn_type == "transformer":
-        model = MyViT(n_classes, 28, 7, n_classes, 64, 6)
+        n_patches = 7
+        n_blocks = 2
+        n_blocks = 2
+        hidden_d = 8
+        n_heads = 2
+        model = MyViT(chw = (1, 28, 28), n_patches=n_patches, n_blocks=n_blocks,
+              hidden_d=hidden_d, n_heads=n_heads, out_d=n_classes)
         # Additional processing for ViT if needed
     else:
         print(f"Model type {args.nn_type} not implemented")
@@ -140,3 +149,4 @@ if __name__ == '__main__':
     # which can be accessed as "args.data", for example.
     args = parser.parse_args()
     main(args)
+
