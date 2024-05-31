@@ -367,12 +367,12 @@ class Trainer(object):
             total_accuracy += acc
 
             # Optionally, print training progress
-            print(f'\rEpoch {ep+1}/{self.epochs}, Iteration {it+1}/{len(dataloader)}: Loss = {loss.item():.4f}, Accuracy = {acc:.2f}%', end='')
+            #print(f'\rEpoch {ep+1}/{self.epochs}, Iteration {it+1}/{len(dataloader)}: Loss = {loss.item():.4f}, Accuracy = {acc:.2f}%', end='')
 
         # Print average loss and accuracy for the epoch if needed
-        average_loss = train_loss / len(dataloader)
-        average_accuracy = total_accuracy / len(dataloader)
-        print(f'\nEpoch {ep+1} completed. Average Loss: {average_loss:.4f}, Average Accuracy: {average_accuracy:.2f}%')
+        #average_loss = train_loss / len(dataloader)
+        #average_accuracy = total_accuracy / len(dataloader)
+        #print(f'\nEpoch {ep+1} completed. Average Loss: {average_loss:.4f}, Average Accuracy: {average_accuracy:.2f}%')
             
 
     def predict_torch(self, dataloader):
@@ -416,16 +416,15 @@ class Trainer(object):
         """
         start_time = time.time()  # Start timing
 
-        print("Training data : %d", training_data.shape)
         # First, prepare data for pytorch
         train_dataset = TensorDataset(torch.from_numpy(training_data).float(), 
                                       torch.from_numpy(training_labels).long())
         train_dataloader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
-        
+
         self.train_all(train_dataloader)
 
         end_time = time.time()  # End timing
-        print(f"Execution Time of 'fit': {end_time - start_time:.4f} seconds")  # Print the execution time
+        print(f"Execution Time : {end_time - start_time:.4f} seconds")  # Print the execution time
         
         return self.predict(training_data)
 
