@@ -361,12 +361,12 @@ class Trainer(object):
             total_accuracy += acc
 
             # Optionally, print training progress
-            #print(f'\rEpoch {ep+1}/{self.epochs}, Iteration {it+1}/{len(dataloader)}: Loss = {loss.item():.4f}, Accuracy = {acc:.2f}%', end='')
+            print(f'\rEpoch {ep+1}/{self.epochs}, Iteration {it+1}/{len(dataloader)}: Loss = {loss.item():.4f}, Accuracy = {100*acc:.2f}%', end='')
 
         # Print average loss and accuracy for the epoch if needed
-        #average_loss = train_loss / len(dataloader)
-        #average_accuracy = total_accuracy / len(dataloader)
-        #print(f'\nEpoch {ep+1} completed. Average Loss: {average_loss:.4f}, Average Accuracy: {average_accuracy:.2f}%')
+        average_loss = train_loss / len(dataloader)
+        average_accuracy = total_accuracy / len(dataloader)
+        print(f'\nEpoch {ep+1} completed. Average Loss: {average_loss:.4f}, Average Accuracy: {average_accuracy:.2f}%')
             
 
     def predict_torch(self, dataloader):
@@ -454,7 +454,6 @@ class Trainer(object):
         Returns:
             float: The accuracy percentage.
         """
-        predicted = torch.argmax(logits, dim=1)
-        correct = (predicted == y).type(torch.float)
-        accuracy = correct.mean().item() * 100
-        return accuracy
+        x = x.detach().cpu().numpy()
+        y = y.detach().cpu().numpy()
+        return np.mean(np.argmax(x, axis=1) == y)
