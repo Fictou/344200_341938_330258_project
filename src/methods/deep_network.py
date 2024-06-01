@@ -159,7 +159,49 @@ class MyViT(nn.Module):
     """
     A Transformer-based neural network
     """
+    def patchify(self, images, n_patches):
+        """
+        Create a series of patches from a collection of images.
 
+        Arguments:
+            images: set of images
+            n_patches: nb of patches in a single row
+        """
+
+        n, c, h, w = images.shape
+
+        assert h == w # We assume square image.
+
+        patches = torch.zeros(n, n_patches ** 2, h * w * c // n_patches ** 2)
+        patch_size = h // n_patches
+
+        for idx, image in enumerate(images):
+            for i in range(n_patches):
+                for j in range(n_patches):
+
+                    # Extract the patch of the image.
+                    patch = image[:, i * patch_size: (i + 1) * patch_size, j * patch_size: (j + 1) * patch_size]
+                
+                    # Flatten the patch and store it.
+                    patches[idx, i * n_patches + j] = patch.flatten()
+
+        return patches
+    
+    def get_positional_embeddings(self, sequence_length, d):
+        """
+        Encoding of how to determine the position of a token within an image. 
+        This method generates a matrix that represents the positional information to be added to each token.
+
+        Arguments:
+            sequence_length: nb of tokens
+            d: dimension of a token
+        """
+        result = torch.ones(sequence_length, d)
+        for i in range(sequence_length):
+            for j in range(d):
+                result[i][j] = np.sin(i / (10000 ** (j / d))) if j % 2 == 0 else np.cos(i / (10000 ** ((j - 1) / d)))
+        return result  
+        
     def __init__(self, chw, n_patches, n_blocks, hidden_d, n_heads, out_d):
         """
         Initialize the network.
@@ -231,51 +273,6 @@ class MyViT(nn.Module):
         out = self.mlp(out)
 
         return out
-    
-    @staticmethod
-    def patchify(images, n_patches):
-        n, c, h, w = images.shape
-
-        assert h == w # We assume square image.
-
-        patches = torch.zeros(n, n_patches ** 2, h * w * c // n_patches ** 2)
-        patch_size = h // n_patches
-
-        for idx, image in enumerate(images):
-            for i in range(n_patches):
-                for j in range(n_patches):
-
-                    # Extract the patch of the image.
-                    patch = image[:, i * patch_size: (i + 1) * patch_size, j * patch_size: (j + 1) * patch_size]
-                
-                    # Flatten the patch and store it.
-                    patches[idx, i * n_patches + j] = patch.flatten()
-
-        return patches
-    
-    @staticmethod
-    def get_positional_embeddings(sequence_length, d_model):
-        # Initialize the result tensor with the correct shape
-        result = torch.zeros(sequence_length, d_model)
-
-        # Precompute the denominators for efficiency
-        denominator = torch.pow(10000, torch.arange(0, d_model, 2).float() / d_model) #TODO
-
-        # Loop through each position in the sequence
-        for i in range(sequence_length):
-            # Calculate the values for even indices
-            result[i, 0::2] = torch.sin(i / denominator)
-        
-            # Calculate the values for odd indices (check if there is an odd index available)
-            if d_model % 2 == 1:
-                # If d_model is odd, the last index will be out of range for cos, so handle separately
-                result[i, 1:-1:2] = torch.cos(i / denominator[:-1])  # Avoid the last index
-                result[i, -1] = torch.cos(i / denominator[-1])  # Handle the last index separately
-            else:
-                # If d_model is even, we can safely use the slicing
-                result[i, 1::2] = torch.cos(i / denominator)
-
-        return result
 
 
 class Trainer(object):
@@ -387,14 +384,14 @@ class Trainer(object):
                 with N the number of data points in the validation/test data.
         """
         self.model.eval()
-        pred_labels = []
         with torch.no_grad():
-            for data in dataloader:
-                outputs = self.model(data[0])
-                _, predicted = torch.max(outputs.data, 1)
-                pred_labels.extend(predicted.tolist())
-        pred_labels = torch.tensor(pred_labels)  # Convert list to a tensor
-        return pred_labels
+            pred_labels = []
+            for batch in dataloader:
+                pred_labels.append(self.model(batch[0]))
+
+        pred_labels = torch.cat(pred_labels, dim=0)
+        return torch.argmax(pred_labels, axis=1)
+
     
     def fit(self, training_data, training_labels):
         """
@@ -443,7 +440,7 @@ class Trainer(object):
         return pred_labels.cpu().numpy()
     
 
-    def accuracy(self, logits, y):
+    def accuracy(self, x, y):
         """
         Calculate the accuracy of predictions.
 
