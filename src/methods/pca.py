@@ -73,21 +73,8 @@ class PCA(object):
         Returns:
             data_reduced (array): reduced data of shape (N,d)
         """
-        data_reduced = np.dot(data, self.W)
-        return data_reduced
-    
-    
-    def transform(self, data):
-        """
-        Applies dimensionality reduction to the data using the previously computed principal components.
-
-        Arguments:
-            data (array): Data of shape (N, D)
-        Returns:
-            transformed_data (array): Data after projection of shape (N, d)
-        """
-        # Center the data
+        # Center the data using the training data mean
         data_centered = data - self.mean
-        # Transform data using the principal components
-        transformed_data = np.dot(data_centered, self.W)
-        return transformed_data
+        # Project the data onto the top d principal components
+        data_reduced = np.dot(data_centered, self.W)
+        return data_reduced
