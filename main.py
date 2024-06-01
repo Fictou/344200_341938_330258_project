@@ -60,9 +60,6 @@ def main(args):
         if not args.test:
             xval = pca_obj.reduce_dimension(xval)
 
-
-    print("-------------------------")
-    print(xtrain.shape)
     ## 3. Initialize the method you want to use.
 
     # Neural Networks (MS2)
