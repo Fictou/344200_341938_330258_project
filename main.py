@@ -80,6 +80,8 @@ def main(args):
     elif args.nn_type == "transformer":
         xtrain = xtrain.reshape(-1, 1, 28, 28)
         xtest = xtest.reshape(-1, 1, 28, 28)
+        if not args.test:
+            xval = xval.reshape(-1, 1, 28, 28)
         n_patches = 7
         n_blocks = 2
         n_blocks = 2
