@@ -126,11 +126,8 @@ class MyMSA(nn.Module):
                 # Map seq to q, k, v.
                 q, k, v = q_mapping(seq), k_mapping(seq), v_mapping(seq)
 
-                # Calculate the dot product between queries and keys, and scale it.
-                scaled_dot_product = torch.matmul(q, k.transpose(-2, -1)) / (self.d_head ** 0.5)
-
                 # Apply softmax to get the attention weights.
-                attention = self.softmax(scaled_dot_product)
+                attention = self.softmax(q @ k.T / (self.d_head ** 0.5))
 
                 seq_result.append(attention @ v)
             result.append(torch.hstack(seq_result))
@@ -262,7 +259,7 @@ class MyViT(nn.Module):
         result = torch.zeros(sequence_length, d_model)
 
         # Precompute the denominators for efficiency
-        denominator = torch.pow(10000, torch.arange(0, d_model, 2).float() / d_model)
+        denominator = torch.pow(10000, torch.arange(0, d_model, 2).float() / d_model) #TODO
 
         # Loop through each position in the sequence
         for i in range(sequence_length):
@@ -334,6 +331,7 @@ class Trainer(object):
         Arguments:
             dataloader (DataLoader): dataloader for training data
         """
+        self.model.train()
         train_loss = 0.0
         total_accuracy = 0.0  # To average accuracy over iterations if needed
         for it, batch in enumerate(dataloader):
