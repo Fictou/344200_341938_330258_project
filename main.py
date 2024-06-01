@@ -25,9 +25,6 @@ def main(args):
     xtrain = xtrain.reshape(xtrain.shape[0], -1)
     xtest = xtest.reshape(xtest.shape[0], -1)
 
-    #xtrain = xtrain.reshape((xtrain.shape[0], 1, int(np.sqrt(xtrain.shape[1])), int(np.sqrt(xtrain.shape[1]))))
-    #xtest = xtest.reshape((xtest.shape[0], 1, int(np.sqrt(xtest.shape[1])), int(np.sqrt(xtest.shape[1]))))
-
     ## 2. Then we must prepare it. This is were you can create a validation set,
     #  normalize, add bias, etc.
 
@@ -47,7 +44,7 @@ def main(args):
     if not args.test:
         xval = normalize_fn(xval, mean, std)
 
-    # Add bias term
+    # Add bias term TODO
     #xtrain = append_bias_term(xtrain)
     #xtest = append_bias_term(xtest)
     #if not args.test:
@@ -57,14 +54,15 @@ def main(args):
     if args.use_pca:
         print("Using PCA")
         pca_obj = PCA(d=args.pca_d)
-        explained_variance = pca_obj.find_principal_components(xtrain)
-        print(f"Explained Variance by PCA: {explained_variance}%")
-        xtrain = pca_obj.transform(xtrain)
-        xtest = pca_obj.transform(xtest)
+        pca_obj.find_principal_components(xtrain)  # Only fit PCA, do not modify xtrain directly here.
+        xtrain = pca_obj.reduce_dimension(xtrain)
+        xtest = pca_obj.reduce_dimension(xtest)
         if not args.test:
-            xval = pca_obj.transform(xval)
+            xval = pca_obj.reduce_dimension(xval)
 
 
+    print("-------------------------")
+    print(xtrain.shape)
     ## 3. Initialize the method you want to use.
 
     # Neural Networks (MS2)
@@ -78,11 +76,13 @@ def main(args):
     elif args.nn_type == "cnn":
         model = CNN(1, n_classes)
         # Reshape data for CNN (if required, assuming images are square)
-        xtrain = xtrain.reshape(-1, 1, 28, 28)  # Example for 28x28 grayscale images
+        xtrain = xtrain.reshape(-1, 1, 28, 28)
         xtest = xtest.reshape(-1, 1, 28, 28)
         if not args.test:
             xval = xval.reshape(-1, 1, 28, 28)
     elif args.nn_type == "transformer":
+        xtrain = xtrain.reshape(-1, 1, 28, 28)
+        xtest = xtest.reshape(-1, 1, 28, 28)
         n_patches = 7
         n_blocks = 2
         n_blocks = 2
