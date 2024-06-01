@@ -104,7 +104,10 @@ def main(args):
     preds_train = method_obj.fit(xtrain, ytrain)
 
     # Predict on unseen data
-    preds = method_obj.predict(xtest)
+    if args.test:
+        preds = method_obj.predict(xtest)
+    else:
+        preds = method_obj.predict(xval)
 
     ## Report results: performance on train and valid/test sets
     acc = accuracy_fn(preds_train, ytrain)
@@ -115,7 +118,6 @@ def main(args):
     # You can check your model performance on test set by submitting your test set predictions on the AIcrowd
     # competition.
     if not args.test:
-        preds = method_obj.predict(xval)
         acc = accuracy_fn(preds, yval)
         macrof1 = macrof1_fn(preds, yval)
         print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
