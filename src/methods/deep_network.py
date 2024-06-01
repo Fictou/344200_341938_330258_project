@@ -209,8 +209,6 @@ class MyViT(nn.Module):
             preds (tensor): logits of predictions of shape (N, C)
                 Reminder: logits are value pre-softmax.
         """
-        print("-------------------\n")
-        print(x.shape)
         n, c, h, w = x.shape
 
         # Divide images into patches.
@@ -310,10 +308,8 @@ class Trainer(object):
         # Determine the optimizer based on the type of model
         if isinstance(model, (MLP, CNN)):
             self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.lr)
-        elif isinstance(model, MyViT):
-            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         else:
-            raise ValueError("Unsupported model type for optimizer configuration")
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
     def train_all(self, dataloader):
         """
