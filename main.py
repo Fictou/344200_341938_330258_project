@@ -75,6 +75,7 @@ def main(args):
     if args.nn_type == "mlp":
         input_dim = xtrain.shape[1]
         model = MLP(input_dim, n_classes)
+
     elif args.nn_type == "cnn":
         model = CNN(1, n_classes)
         xtrain = xtrain.reshape(xtrain.shape[0], 1, 28, 28)
@@ -82,6 +83,7 @@ def main(args):
             xval = xval.reshape(xval.shape[0], 1, 28, 28)
         else:
             xtest = xtest.reshape(xtest.shape[0], 1, 28, 28)
+
     elif args.nn_type == "transformer":
         xtrain = xtrain.reshape(xtrain.shape[0], 1, 28, 28)
         if not args.test:
@@ -95,11 +97,12 @@ def main(args):
         model = MyViT(chw = (1, 28, 28), n_patches=n_patches, n_blocks=n_blocks,
               hidden_d=hidden_d, n_heads=n_heads, out_d=n_classes)
         # Additional processing for ViT if needed
+        
     else:
         print(f"Model type {args.nn_type} not implemented")
         return
 
-    #summary(model) TODO Uncomment
+    summary(model)
 
     # Trainer object
     method_obj = Trainer(model, lr=args.lr, epochs=args.max_iters, batch_size=args.nn_batch_size)
