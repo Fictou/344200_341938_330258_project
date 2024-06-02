@@ -414,7 +414,7 @@ class Trainer(object):
         self.train_all(train_dataloader)
 
         end_time = time.time()  # End timing
-        print(f"Execution Time : {end_time - start_time:.4f} seconds")  # Print the execution time
+        print(f"Fit execution time : {end_time - start_time:.4f} seconds")  # Print the execution time
         
         return self.predict(training_data)
 
@@ -429,14 +429,18 @@ class Trainer(object):
         Returns:
             pred_labels (array): labels of shape (N,)
         """
+        start_time = time.time()  # Start timing
         # First, prepare data for pytorch
         test_dataset = TensorDataset(torch.from_numpy(test_data).float())
         test_dataloader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
 
         pred_labels = self.predict_torch(test_dataloader)
+        pred_labels = pred_labels.cpu().numpy()
 
+        end_time = time.time()  # End timing
+        print(f"Predict execution time : {end_time - start_time:.4f} seconds")  # Print the execution time
         # We return the labels after transforming them into numpy array.
-        return pred_labels.cpu().numpy()
+        return pred_labels
     
 
     def accuracy(self, x, y):
