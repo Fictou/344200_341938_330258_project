@@ -8,8 +8,6 @@ from src.methods.pca import PCA
 from src.methods.deep_network import MLP, CNN, Trainer, MyViT
 from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, get_n_classes
 
-validation_size = 0.2
-
 
 def main(args):
     """
@@ -97,7 +95,7 @@ def main(args):
         model = MyViT(chw = (1, 28, 28), n_patches=n_patches, n_blocks=n_blocks,
               hidden_d=hidden_d, n_heads=n_heads, out_d=n_classes)
         # Additional processing for ViT if needed
-        
+
     else:
         print(f"Model type {args.nn_type} not implemented")
         return
