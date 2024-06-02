@@ -95,6 +95,9 @@ class CNN(nn.Module):
         return self.fc3(x)
 
 class MyMSA(nn.Module):
+    """
+    MSA = Multi-head Self Attention  
+    """
     def __init__(self, d, n_heads=2):
         super(MyMSA, self).__init__()
         self.d = d
@@ -134,6 +137,9 @@ class MyMSA(nn.Module):
         return torch.cat([torch.unsqueeze(r, dim=0) for r in result])
 
 class MyViTBlock(nn.Module):
+    """
+    Encoder block for transformer
+    """
     def __init__(self, hidden_d, n_heads, mlp_ratio=4):
         super(MyViTBlock, self).__init__()
         self.hidden_d = hidden_d
