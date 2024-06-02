@@ -30,35 +30,40 @@ def main(args):
 
     # Make a validation set
     if not args.test:
-        num_val_samples = int(validation_size * xtrain.shape[0])
-        xval = xtrain[:num_val_samples]
-        yval = ytrain[:num_val_samples]
-        xtrain = xtrain[num_val_samples:]
-        ytrain = ytrain[num_val_samples:]
+        rand = np.random.permutation(xtrain.shape[0])  # make a random validation set
+        num_val_samples = int(xtrain.shape[0] * 0.8)
+        xval = xtrain[rand[num_val_samples:]] 
+        yval = ytrain[rand[num_val_samples:]]  
+        xtrain = xtrain[rand[:num_val_samples]] 
+        ytrain = ytrain[rand[:num_val_samples]]
 
     # Normalize the data
-    mean = np.mean(xtrain, axis=0)
-    std = np.std(xtrain, axis=0)
+    mean = xtrain.mean(axis=0, keepdims= True)
+    std = xtrain.std(axis=0, keepdims=True)
     xtrain = normalize_fn(xtrain, mean, std)
-    xtest = normalize_fn(xtest, mean, std)
     if not args.test:
         xval = normalize_fn(xval, mean, std)
-
-    # Add bias term TODO
-    #xtrain = append_bias_term(xtrain)
-    #xtest = append_bias_term(xtest)
-    #if not args.test:
-    #   xval = append_bias_term(xval)
+    else:
+        xtest = normalize_fn(xtest, mean, std)
 
     # Dimensionality reduction (MS2)
-    if args.use_pca:
+    if args.use_pca and args.nn_type == "mlp":
         print("Using PCA")
         pca_obj = PCA(d=args.pca_d)
-        pca_obj.find_principal_components(xtrain)  # Only fit PCA, do not modify xtrain directly here.
+        pca_obj.find_principal_components(xtrain)
         xtrain = pca_obj.reduce_dimension(xtrain)
-        xtest = pca_obj.reduce_dimension(xtest)
         if not args.test:
             xval = pca_obj.reduce_dimension(xval)
+        else:
+            xtest = pca_obj.reduce_dimension(xtest)
+
+    # Add bias term for MLP
+    if args.nn_type == "mlp":
+        xtrain = append_bias_term(xtrain)
+        if not args.test:
+            xval = append_bias_term(xval)
+        else:
+            xtest = append_bias_term(xtest)
 
     ## 3. Initialize the method you want to use.
 
@@ -72,16 +77,17 @@ def main(args):
         model = MLP(input_dim, n_classes)
     elif args.nn_type == "cnn":
         model = CNN(1, n_classes)
-        # Reshape data for CNN (if required, assuming images are square)
-        xtrain = xtrain.reshape(-1, 1, 28, 28)
-        xtest = xtest.reshape(-1, 1, 28, 28)
+        xtrain = xtrain.reshape(xtrain.shape[0], 1, 28, 28)
         if not args.test:
-            xval = xval.reshape(-1, 1, 28, 28)
+            xval = xval.reshape(xval.shape[0], 1, 28, 28)
+        else:
+            xtest = xtest.reshape(xtest.shape[0], 1, 28, 28)
     elif args.nn_type == "transformer":
         xtrain = xtrain.reshape(xtrain.shape[0], 1, 28, 28)
-        xtest = xtest.reshape(xtrain.shape[0], 1, 28, 28)
         if not args.test:
-            xval = xval.reshape(xtrain.shape[0], 1, 28, 28)
+            xval = xval.reshape(xval.shape[0], 1, 28, 28)
+        else:
+            xtest = xtest.reshape(xtest.shape[0], 1, 28, 28)
         n_patches = 14
         n_blocks = 3
         hidden_d = 60
