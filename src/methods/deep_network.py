@@ -71,8 +71,8 @@ class CNN(nn.Module):
             n_classes (int): number of classes to predict
         """
         super().__init__()
-        self.conv2d1 = nn.Conv2d(input_channels, 6, 3, padding=1)
-        self.conv2d2 = nn.Conv2d(6, 16, 3, padding=1)
+        self.conv2d1 = nn.Conv2d(input_channels, 6, 3, 1, padding=1)
+        self.conv2d2 = nn.Conv2d(6, 16, 3, 1, padding=1)
         self.fc1 = nn.Linear(7 * 7 * 16, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, n_classes)
@@ -296,14 +296,13 @@ class Trainer(object):
         self.epochs = epochs
         self.model = model
         self.batch_size = batch_size
-
         self.criterion = nn.CrossEntropyLoss()
 
         # Determine the optimizer based on the type of model
-        if isinstance(model, (MLP, CNN)):
-            self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.lr)
+        if model == MyViT:
+            self.optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         else:
-            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+            self.optimizer = torch.optim.SGD(model.parameters(), lr=lr)
 
     def train_all(self, dataloader):
         """
@@ -363,7 +362,7 @@ class Trainer(object):
         # Print average loss and accuracy for the epoch if needed
         average_loss = train_loss / len(dataloader)
         average_accuracy = total_accuracy / len(dataloader)
-        print(f'\nEpoch {ep+1} completed. Average Loss: {average_loss:.4f}, Average Accuracy: {average_accuracy:.2f}%')
+        print(f'\nEpoch {ep+1} completed. Average Loss: {average_loss:.4f}, Average Accuracy: {100* average_accuracy:.2f}%')
             
 
     def predict_torch(self, dataloader):
