@@ -362,13 +362,13 @@ class Trainer(object):
             acc = self.accuracy(logits, y)
             total_accuracy += acc
 
-            # Optionally, print training progress
-            print(f'\rEpoch {ep+1}/{self.epochs}, Iteration {it+1}/{len(dataloader)}: Loss = {loss.item():.4f}, Accuracy = {100*acc:.2f}%', end='')
+            # Uncomment theses lines to print the training progress 
+            #print(f'\rEpoch {ep+1}/{self.epochs}, Iteration {it+1}/{len(dataloader)}: Loss = {loss.item():.4f}, Accuracy = {100*acc:.2f}%', end='')
 
         # Print average loss and accuracy for the epoch if needed
-        average_loss = train_loss / len(dataloader)
-        average_accuracy = total_accuracy / len(dataloader)
-        print(f'\nEpoch {ep+1} completed. Average Loss: {average_loss:.4f}, Average Accuracy: {100* average_accuracy:.2f}%')
+        #average_loss = train_loss / len(dataloader)
+        #average_accuracy = total_accuracy / len(dataloader)
+        #print(f'\nEpoch {ep+1} completed. Average Loss: {average_loss:.4f}, Average Accuracy: {100* average_accuracy:.2f}%')
             
 
     def predict_torch(self, dataloader):
@@ -420,7 +420,8 @@ class Trainer(object):
         self.train_all(train_dataloader)
 
         end_time = time.time()  # End timing
-        print(f"Fit execution time : {end_time - start_time:.4f} seconds")  # Print the execution time
+        # Uncomment to print fit execution time
+        #print(f"Fit execution time : {end_time - start_time:.4f} seconds")
         
         return self.predict(training_data)
 
@@ -444,7 +445,9 @@ class Trainer(object):
         pred_labels = pred_labels.cpu().numpy()
 
         end_time = time.time()  # End timing
-        print(f"Predict execution time : {end_time - start_time:.4f} seconds")  # Print the execution time
+        # Uncomment to print predict execution time
+        #print(f"Predict execution time : {end_time - start_time:.4f} seconds")
+
         # We return the labels after transforming them into numpy array.
         return pred_labels
     
